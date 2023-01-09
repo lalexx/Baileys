@@ -682,6 +682,15 @@ WA uses an encrypted form of communication to send chat/app updates. This has be
   '123456@s.whatsapp.net')
   ```
 
+- Set labels for one or more chats
+  ``` ts
+  '123456@s.whatsapp.net')
+  await sock.setLabels([
+    { jid: '12345@s.whatsapp.net', labels: [WAChatLabel.NEW_CLIENT, WAChatLabel.NEW_ORDER] },
+    { jid: '67890@s.whatsapp.net', labels: [WAChatLabel.COMPLETED_ORDER, WAChatLabel.PAYMENT_DONE] }
+  ])
+  ```
+
 **Note:** if you mess up one of your updates, WA can log you out of all your devices and you'll have to log in again.
 
 ## Disappearing Messages

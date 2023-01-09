@@ -1,13 +1,38 @@
-import { Boom } from '@hapi/boom'
 import { AxiosRequestConfig } from 'axios'
 import type { Logger } from 'pino'
+
+import { Boom } from '@hapi/boom'
+
 import { proto } from '../../WAProto'
-import { BaileysEventEmitter, Chat, ChatModification, ChatMutation, ChatUpdate, Contact, InitialAppStateSyncOptions, LastMessageList, LTHashState, WAPatchCreate, WAPatchName } from '../Types'
-import { BinaryNode, getBinaryNodeChild, getBinaryNodeChildren, isJidGroup, jidNormalizedUser } from '../WABinary'
-import { aesDecrypt, aesEncrypt, hkdf, hmacSign } from './crypto'
+import {
+	BaileysEventEmitter,
+	Chat,
+	ChatModification,
+	ChatMutation,
+	ChatUpdate,
+	Contact,
+	InitialAppStateSyncOptions,
+	LastMessageList,
+	LTHashState,
+	WAPatchCreate,
+	WAPatchName,
+} from '../Types'
+import {
+	BinaryNode,
+	getBinaryNodeChild,
+	getBinaryNodeChildren,
+	isJidGroup,
+	jidNormalizedUser,
+} from '../WABinary'
+import {
+	aesDecrypt,
+	aesEncrypt,
+	hkdf,
+	hmacSign,
+} from './crypto'
 import { toNumber } from './generics'
 import { LT_HASH_ANTI_TAMPERING } from './lt-hash'
-import { downloadContentFromMessage, } from './messages-media'
+import { downloadContentFromMessage } from './messages-media'
 
 type FetchAppStateSyncKey = (keyId: string) => Promise<proto.Message.IAppStateSyncKeyData | null | undefined>
 
@@ -605,6 +630,18 @@ export const chatModificationToAppPatch = (
 			type: 'critical_block',
 			apiVersion: 1,
 			operation: OP.SET,
+		}
+	} else if('labeled' in mod) {
+		patch = {
+			syncAction: {
+				labelAssociationAction: {
+					labeled: !!mod.labeled
+				}
+			},
+			index: ['label_jid', mod.label_jid, jid],
+			type: 'regular_low', // ?
+			apiVersion: 5, // ?
+			operation: OP.SET
 		}
 	} else {
 		throw new Boom('not supported')

@@ -1,3 +1,6 @@
+import { AuthenticationState } from './Auth'
+import { SocketConfig } from './Socket'
+
 export * from './Auth'
 export * from './GroupMetadata'
 export * from './Chat'
@@ -8,9 +11,6 @@ export * from './Socket'
 export * from './Events'
 export * from './Product'
 export * from './Call'
-
-import { AuthenticationState } from './Auth'
-import { SocketConfig } from './Socket'
 
 export type UserFacingSocketConfig = Partial<SocketConfig> & { auth: AuthenticationState }
 
@@ -23,6 +23,14 @@ export enum DisconnectReason {
     badSession = 500,
     restartRequired = 515,
     multideviceMismatch = 411
+}
+
+export enum WAChatLabel {
+    NEW_CLIENT = 1,
+    NEW_ORDER = 2,
+    PAYMENT_PENDING = 3,
+    PAYMENT_DONE = 4,
+    COMPLETED_ORDER = 5
 }
 
 export type WAInitResponse = {

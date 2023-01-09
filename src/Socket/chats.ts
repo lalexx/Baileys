@@ -1,11 +1,46 @@
 import { Boom } from '@hapi/boom'
+
 import { proto } from '../../WAProto'
 import { PROCESSABLE_HISTORY_TYPES } from '../Defaults'
-import { ALL_WA_PATCH_NAMES, ChatModification, ChatMutation, LTHashState, MessageUpsertType, PresenceData, SocketConfig, WABusinessHoursConfig, WABusinessProfile, WAMediaUpload, WAMessage, WAPatchCreate, WAPatchName, WAPresence } from '../Types'
-import { chatModificationToAppPatch, ChatMutationMap, decodePatches, decodeSyncdSnapshot, encodeSyncdPatch, extractSyncdPatches, generateProfilePicture, getHistoryMsg, newLTHashState, processSyncAction } from '../Utils'
+import {
+	ALL_WA_PATCH_NAMES,
+	ChatModification,
+	ChatMutation,
+	LTHashState,
+	MessageUpsertType,
+	PresenceData,
+	SocketConfig,
+	WABusinessHoursConfig,
+	WABusinessProfile,
+	WAChatLabel,
+	WAMediaUpload,
+	WAMessage,
+	WAPatchCreate,
+	WAPatchName,
+	WAPresence,
+} from '../Types'
+import {
+	chatModificationToAppPatch,
+	ChatMutationMap,
+	decodePatches,
+	decodeSyncdSnapshot,
+	encodeSyncdPatch,
+	extractSyncdPatches,
+	generateProfilePicture,
+	getHistoryMsg,
+	newLTHashState,
+	processSyncAction,
+} from '../Utils'
 import { makeMutex } from '../Utils/make-mutex'
 import processMessage from '../Utils/process-message'
-import { BinaryNode, getBinaryNodeChild, getBinaryNodeChildren, jidNormalizedUser, reduceBinaryNodeToDictionary, S_WHATSAPP_NET } from '../WABinary'
+import {
+	BinaryNode,
+	getBinaryNodeChild,
+	getBinaryNodeChildren,
+	jidNormalizedUser,
+	reduceBinaryNodeToDictionary,
+	S_WHATSAPP_NET,
+} from '../WABinary'
 import { makeSocket } from './socket'
 
 const MAX_SYNC_ATTEMPTS = 2
@@ -553,6 +588,19 @@ export const makeChatsSocket = (config: SocketConfig) => {
 		}
 	}
 
+	const setLabels = async(patch: Array<{ jid: string; labels: WAChatLabel[] }>) => {
+		const payloads: Array<Array<string>> = []
+		patch?.forEach(p => {
+			p?.labels?.forEach(labelJid => {
+				payloads.push([p.jid, `${labelJid}`])
+			})
+		})
+
+		await Promise.all(payloads?.map(async(payload) => {
+			return await chatModify({ label_jid: payload[1], labeled: true }, payload[0])
+		}))
+	}
+
 	const appPatch = async(patchCreate: WAPatchCreate) => {
 		const name = patchCreate.type
 		const myAppStateKeyId = authState.creds.myAppStateKeyId
@@ -859,6 +907,7 @@ export const makeChatsSocket = (config: SocketConfig) => {
 		updateBlockStatus,
 		getBusinessProfile,
 		resyncAppState,
-		chatModify
+		chatModify,
+		setLabels
 	}
 }
